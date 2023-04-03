@@ -119,7 +119,7 @@ class AlarmScreenState extends State<AlarmScreen>
                           text: aList[index].mins,
                           style: const TextStyle(fontSize: 20))
                     ])),
-                subtitle: CustomText(days.join(',').substring(0, 3),
+                subtitle: CustomText(days.join(','),
                     style: const TextStyle(
                         fontSize: 15, color: ColorResources.grey3Color)),
                 trailing: Switch(
