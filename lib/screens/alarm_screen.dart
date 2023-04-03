@@ -1,4 +1,4 @@
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+
 import 'package:clock_app/module/alram_module.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/widgets/custom_text.dart';
@@ -56,7 +56,7 @@ class AlarmScreenState extends State<AlarmScreen>
                   onChanged: (bool? value) {
                     if (value != null) {
                       setState(() {
-                        selectedWeekdays[index] = value!;
+                        selectedWeekdays[index] = value;
                       });
                     } else {
                       selectedWeekdays[index];

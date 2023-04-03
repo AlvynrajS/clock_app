@@ -1,3 +1,4 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:clock_app/screens/alarm_screen.dart';
 import 'package:clock_app/screens/clock_screen.dart';
 import 'package:clock_app/screens/stopwatch_screen.dart';
@@ -6,7 +7,8 @@ import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/utils/image_resource.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  AndroidAlarmManager.initialize();
   runApp(const MyApp());
 }
 

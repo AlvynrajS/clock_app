@@ -40,7 +40,11 @@ dependencies:
   timezone: ^0.9.1
   android_alarm_manager_plus: ^2.1.1
   flutter_rounded_date_picker: ^3.0.2
-
+  geocoding: ^2.1.0
+  permission_handler: ^10.2.0
+  flutter_local_notifications: ^13.0.0
+  weekday_selector: ^1.1.0
+  alarm: ^0.2.9
 
 
 dev_dependencies:

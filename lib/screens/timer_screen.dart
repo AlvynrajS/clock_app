@@ -25,7 +25,9 @@ class _TimerScreenState extends State<TimerScreen>
   Duration? myDuration;
 
   String hrStrDigits(int n) => n.toString().padLeft(2, '0');
+
   String minStrDigits(int n) => n.toString().padLeft(2, '0');
+
   String secStrDigits(int n) => n.toString().padLeft(2, '0');
 
   @override
@@ -55,7 +57,7 @@ class _TimerScreenState extends State<TimerScreen>
                     color: ColorResources.grey1Color, fontSize: 20),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height/1.3,
+                height: MediaQuery.of(context).size.height / 1.3,
                 child: Stack(
                   children: [
                     ListView.separated(
@@ -92,7 +94,7 @@ class _TimerScreenState extends State<TimerScreen>
                     ),
                     Positioned(
                       bottom: 0,
-                      left: MediaQuery.of(context).size.width/2.5,
+                      left: MediaQuery.of(context).size.width / 2.5,
                       child: FloatingActionButton(
                         onPressed: () {
                           popup();
@@ -252,16 +254,12 @@ class _TimerScreenState extends State<TimerScreen>
 
   void setCountDown() {
     final reduceBy = 1;
-    print(myDuration!.inSeconds);
     setState(() {
       final sec = myDuration!.inSeconds - reduceBy;
-      print(myDuration!.inSeconds);
-      print(sec);
       if (sec < 0) {
         countdownTimer!.cancel();
       } else {
         myDuration = Duration(seconds: sec);
-        print(myDuration!.inSeconds);
       }
     });
   }

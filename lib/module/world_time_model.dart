@@ -4,10 +4,9 @@ import 'dart:convert';
 class WorldTime {
   String location;
   String? time;
-  String flag;
   String url;
 
-  WorldTime({required this.location, required this.flag, required this.url});
+  WorldTime({required this.location, required this.url});
 
   Future<void> getTime() async {
     try {

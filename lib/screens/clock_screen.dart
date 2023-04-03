@@ -13,10 +13,11 @@ class ClockScreen extends StatefulWidget {
   const ClockScreen({Key? key}) : super(key: key);
 
   @override
-  State<ClockScreen> createState() => _ClockScreenSecondState();
+  State<ClockScreen> createState() => _ClockScreenState();
 }
 
-class _ClockScreenSecondState extends State<ClockScreen> {
+class _ClockScreenState extends State<ClockScreen>
+    with AutomaticKeepAliveClientMixin {
   String cityName = '';
   bool isDaytime = false;
   String time = '';
@@ -163,10 +164,8 @@ class _ClockScreenSecondState extends State<ClockScreen> {
                 onPressed: () async {
                   selectedCityName =
                       await showSearch(context: context, delegate: SearchBar());
-                  print("selectedCityName before : $selectedCityName");
                   setState(() {
                     selectedCityName;
-                    print("selectedCityName before : $selectedCityName");
                     getTime();
                   });
                 },
@@ -198,6 +197,10 @@ class _ClockScreenSecondState extends State<ClockScreen> {
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 class SearchBar extends SearchDelegate {
