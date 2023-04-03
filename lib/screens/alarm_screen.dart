@@ -1,3 +1,5 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:clock_app/module/alram_module.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
@@ -8,90 +10,142 @@ class AlarmScreen extends StatefulWidget {
   const AlarmScreen({Key? key}) : super(key: key);
 
   @override
-  State<AlarmScreen> createState() => _AlarmScreenState();
+  State<AlarmScreen> createState() => AlarmScreenState();
 }
 
-class _AlarmScreenState extends State<AlarmScreen>
+class AlarmScreenState extends State<AlarmScreen>
     with AutomaticKeepAliveClientMixin {
-  TextEditingController controller = TextEditingController();
   DateTime dateTime = DateTime.now();
-  Duration duration = Duration(minutes: 10);
-  List alarmList = [];
+  Duration duration = const Duration(minutes: 10);
+  List<AlarmModule> aList = [];
+  List<String> days = [];
+  List<String> weekdays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
+  List<bool> selectedWeekdays = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    alarmList;
+  Future<void> setAlarm() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select weekdays'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: weekdays.length,
+              itemBuilder: (BuildContext context, int index) {
+                return CheckboxListTile(
+                  title: Text(weekdays[index]),
+                  value: selectedWeekdays[index],
+                  onChanged: (bool? value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedWeekdays[index] = value!;
+                      });
+                    } else {
+                      selectedWeekdays[index];
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                List<String> selectedDays = [];
+                for (int i = 0; i < weekdays.length; i++) {
+                  if (selectedWeekdays[i]) {
+                    selectedDays.add(weekdays[i]);
+                    days.addAll([weekdays[i]]);
+                  }
+                }
+                setState(() {
+                  selectedDays;
+                  days;
+                });
+                // TODO: Schedule the alarm for the selected days
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-          backgroundColor: ColorResources.whiteColor,
-          body: Stack(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height / 1.25,
-                child: ListView.separated(
-                    itemBuilder: (context, index) {
-                      return alarmList[index];
-                    },
-                    separatorBuilder: (context, ints) {
-                      return const Divider(
-                          height: 5, color: ColorResources.grey1Color);
-                    },
-                    itemCount: alarmList.length),
-              ),
-              Positioned(
-                bottom: 0,
-                left: MediaQuery.of(context).size.width / 2.5,
-                right: MediaQuery.of(context).size.width / 2.3,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    selectTime(context);
-                  },
-                  backgroundColor: ColorResources.lav2Color,
-                  child: const Center(
-                      child: Icon(
-                    Icons.add,
-                    size: 35,
-                  )),
-                ),
-              ),
-            ],
-          )),
-      // ),
-    );
-  }
-
-  Widget alarmListTile(
-      {required String time,
-      required String timeRange,
-      required String days,
-      bool isOn = false}) {
-    return ListTile(
-      enabled: isOn == false ? true : false,
-      contentPadding: const EdgeInsets.all(20),
-      title: RichText(
-          text: TextSpan(
-        text: time,
-        style: const TextStyle(fontSize: 40, color: ColorResources.grey1Color),
-        children: <TextSpan>[
-          TextSpan(text: timeRange, style: const TextStyle(fontSize: 20)),
-        ],
-      )),
-      subtitle: CustomText(days,
-          style:
-              const TextStyle(fontSize: 15, color: ColorResources.grey3Color)),
-      trailing: Switch(
-          value: isOn,
-          onChanged: (val) {
-            setState(() {
-              isOn = !isOn;
-            });
-          }),
-    );
+    return Column(children: [
+      SizedBox(
+        height: MediaQuery.of(context).size.height / 1.3,
+        child: ListView.separated(
+          itemCount: aList.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+                contentPadding: const EdgeInsets.all(20),
+                title: RichText(
+                    text: TextSpan(
+                        text: aList[index].hrs,
+                        style: const TextStyle(
+                            fontSize: 40, color: ColorResources.grey1Color),
+                        children: [
+                      const TextSpan(
+                          text: "  ", style: TextStyle(fontSize: 20)),
+                      TextSpan(
+                          text: aList[index].mins,
+                          style: const TextStyle(fontSize: 20))
+                    ])),
+                subtitle: CustomText(days.join(',').substring(0, 3),
+                    style: const TextStyle(
+                        fontSize: 15, color: ColorResources.grey3Color)),
+                trailing: Switch(
+                    value: aList[index].isOn,
+                    onChanged: (val) {
+                      setState(() {
+                        aList[index].isOn = val;
+                      });
+                    }));
+          },
+          separatorBuilder: (BuildContext context, int index) {
+            return const Divider(
+              height: 10,
+              color: ColorResources.grey1Color,
+            );
+          },
+        ),
+      ),
+      FloatingActionButton(
+        backgroundColor: ColorResources.lav2Color,
+        onPressed: () {
+          selectTime(context);
+        },
+        child: const Icon(Icons.add),
+      )
+    ]);
   }
 
   Future<void> selectTime(BuildContext context) async {
@@ -104,18 +158,15 @@ class _AlarmScreenState extends State<AlarmScreen>
         });
     if (newTime != null) {
       setState(() {
-        dateTime = DateTime(
-          dateTime.year,
-          dateTime.month,
-          dateTime.day,
-          newTime.hour,
-          newTime.minute,
-        );
-        alarmList.add(alarmListTile(
-            time: DateFormat("k:mm").format(dateTime),
-            timeRange: DateFormat("a").format(dateTime),
-            // days: DateFormat("HH:mm").format(dateTime))
-            days: "All Days"));
+        dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day,
+            newTime.hour, newTime.minute);
+        aList.addAll([
+          AlarmModule(
+              hrs: DateFormat("k:mm").format(dateTime),
+              mins: DateFormat("a").format(dateTime))
+        ]);
+
+        setAlarm();
       });
     }
   }
