@@ -3,7 +3,6 @@ import 'package:clock_app/screens/alarm_screen.dart';
 import 'package:clock_app/screens/clock_screen.dart';
 import 'package:clock_app/screens/stopwatch_screen.dart';
 import 'package:clock_app/screens/timer_screen.dart';
-import 'package:clock_app/screens/timer_screen_duplicate.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/utils/image_resource.dart';
 import 'package:flutter/material.dart';
@@ -147,8 +146,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             body: TabBarView(controller: tabBarController, children: const [
               ClockScreen(),
               AlarmScreen(),
-              // TimerScreen(),
-              TimerScreenDuplicate(),
+              TimerScreen(),
               StopWatchScreen()
             ]),
           )),

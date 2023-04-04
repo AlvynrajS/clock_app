@@ -1,58 +1,41 @@
 import 'dart:async';
-import 'dart:core';
 import 'package:clock_app/module/timer_module.dart';
+import 'package:clock_app/screens/timer_screen_controller.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/utils/validation.dart';
 import 'package:clock_app/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({Key? key}) : super(key: key);
 
   @override
-  State<TimerScreen> createState() => _TimerScreenState();
+  State<TimerScreen> createState() => _TimerScreenDuplicate();
 }
 
-class _TimerScreenState extends State<TimerScreen>
-    with AutomaticKeepAliveClientMixin {
-  List<TimerModule> timesList = [];
-  TextEditingController hrsController = TextEditingController();
-  TextEditingController minController = TextEditingController();
-  TextEditingController secController = TextEditingController();
-  TextEditingController dateController = TextEditingController();
-  Timer? countdownTimer;
-  Duration? myDuration;
-  var hours;
-  var minutes;
-  var seconds;
-  var cityName;
+class _TimerScreenDuplicate extends State<TimerScreen> {
+  TimerScreenController controller = Get.put(TimerScreenController());
 
   String hrStrDigits(int n) => n.toString().padLeft(2, '0');
-
   String minStrDigits(int n) => n.toString().padLeft(2, '0');
-
   String secStrDigits(int n) => n.toString().padLeft(2, '0');
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    timesList;
+    // timesList;
+    // durationList;
   }
 
   @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: ColorResources.whiteColor,
-        body: Padding(
-          padding: const EdgeInsets.only(left: 10, top: 10),
-          child: Column(
+    return GetBuilder<TimerScreenController>(
+      builder: (controller) {
+        return SafeArea(
+            child: Scaffold(
+          body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
@@ -60,106 +43,69 @@ class _TimerScreenState extends State<TimerScreen>
                 style: const TextStyle(
                     color: ColorResources.grey1Color, fontSize: 20),
               ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height / 1.3,
-                child: Stack(
-                  children: [
-                    ListView.separated(
-                      itemCount: timesList.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return timerListTile(
-                            durations: Duration(
-                                hours: int.parse(timesList[index].hrs),
-                                minutes: int.parse(timesList[index].min),
-                                seconds: int.parse(timesList[index].sec)),
-                            cityName: timesList[index].cityName,
-                            sec: Duration(
-                                    hours: int.parse(timesList[index].hrs),
-                                    minutes: int.parse(timesList[index].min),
-                                    seconds: int.parse(timesList[index].sec))
-                                .inSeconds,
-                            onPress: () {
-                              (timesList[index].isPlaying == false)
-                                  ? startTimer()
-                                  : stopTimer();
-                              setState(() {
-                                timesList[index].isPlaying = !timesList[index].isPlaying;
-                              });
-                            },
-                            isPlay: timesList[index].isPlaying);
-                      },
-                      separatorBuilder: (BuildContext context, int index) {
-                        return const Divider(
-                          thickness: 1,
-                          color: ColorResources.grey1Color,
-                        );
-                      },
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: MediaQuery.of(context).size.width / 2.5,
-                      child: FloatingActionButton(
-                        onPressed: () {
-                          popup();
+              SizedBox(height: 10),
+              Stack(
+                children: [
+                  Obx(() {
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.height / 1.5,
+                      child: ListView.separated(
+                        itemCount: controller.timesList.value.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          TimerModule _module =
+                              controller.timesList.value[index];
+                          return ListTile(
+                            title: _printDuration(
+                                controller.durationList.value[index]),
+                            subtitle: CustomText(_module.cityName),
+                            trailing: IconButton(
+                                onPressed: () {
+                                  (_module.isPlaying == false)
+                                      ? startTimer(index)
+                                      : stopTimer(index);
+                                  setState(() {
+                                    _module.isPlaying = !_module.isPlaying;
+                                  });
+                                },
+                                icon: Icon(
+                                  (!_module.isPlaying)
+                                      ? Icons.play_arrow_outlined
+                                      : Icons.pause,
+                                  color: ColorResources.lav2Color,
+                                  size: 40,
+                                )),
+                          );
                         },
-                        backgroundColor: ColorResources.lav2Color,
-                        child: const Center(
-                            child: Icon(
-                          Icons.add,
-                          size: 35,
-                        )),
+                        separatorBuilder: (BuildContext context, int index) {
+                          return const Divider(
+                            thickness: 1,
+                            color: ColorResources.grey1Color,
+                          );
+                        },
                       ),
+                    );
+                  }),
+                  Positioned(
+                    bottom: 50,
+                    left: MediaQuery.of(context).size.width / 2.5,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        popup();
+                      },
+                      backgroundColor: ColorResources.lav2Color,
+                      child: const Center(
+                          child: Icon(
+                        Icons.add,
+                        size: 35,
+                      )),
                     ),
-                  ],
-                ),
-              ),
+                  )
+                ],
+              )
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget timerListTile(
-      {required Duration durations,
-      required String cityName,
-      required int sec,
-      required Function() onPress,
-      bool isPlay = false}) {
-
-    if (durations != null) {
-      myDuration = durations;
-      hours = hrStrDigits(myDuration!.inHours.remainder(24));
-      minutes = minStrDigits(myDuration!.inMinutes.remainder(60));
-      seconds = secStrDigits(myDuration!.inSeconds.remainder(60));
-    } else {
-      myDuration = Duration(hours: 10);
-      hours = hrStrDigits(myDuration!.inHours.remainder(24));
-      minutes = minStrDigits(myDuration!.inMinutes.remainder(60));
-      seconds = secStrDigits(myDuration!.inSeconds.remainder(60));
-    }
-    return ListTile(
-      title: RichText(
-          text: TextSpan(
-        text: "",
-        style: const TextStyle(fontSize: 40, color: ColorResources.grey1Color),
-        children: <TextSpan>[
-          TextSpan(text: hours, style: const TextStyle(fontSize: 40)),
-          const TextSpan(text: "H  ", style: TextStyle(fontSize: 20)),
-          TextSpan(text: minutes, style: const TextStyle(fontSize: 40)),
-          const TextSpan(text: "M  ", style: TextStyle(fontSize: 20)),
-          TextSpan(text: seconds, style: const TextStyle(fontSize: 40)),
-          const TextSpan(text: "S  ", style: TextStyle(fontSize: 20)),
-        ],
-      )),
-      subtitle: CustomText(cityName),
-      trailing: IconButton(
-          onPressed: onPress,
-          icon: Icon(
-            (!isPlay) ? Icons.play_arrow_outlined : Icons.pause,
-            color: ColorResources.lav2Color,
-            size: 40,
-          )),
+        ));
+      },
     );
   }
 
@@ -172,9 +118,12 @@ class _TimerScreenState extends State<TimerScreen>
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                timerTextFormFiled(hrsController, "H", Validator.hrsValidate),
-                timerTextFormFiled(minController, "M", Validator.minValidate),
-                timerTextFormFiled(secController, "S", Validator.minValidate),
+                timerTextFormFiled(
+                    controller.hrsController, "H", Validator.hrsValidate),
+                timerTextFormFiled(
+                    controller.minController, "M", Validator.minValidate),
+                timerTextFormFiled(
+                    controller.secController, "S", Validator.minValidate),
               ],
             ),
             actionsPadding: const EdgeInsets.only(bottom: 15),
@@ -193,20 +142,39 @@ class _TimerScreenState extends State<TimerScreen>
                     color: ColorResources.lav2Color, fontSize: 18),
                 onTap: () {
                   setState(() {
-                    if (hrsController.text != "" ||
-                        minController.text != "" ||
-                        secController.text != "") {
-                      timesList.add(TimerModule(
-                        hrs: hrsController.text.isNotEmpty
-                            ? hrsController.text
+                    int _hour = 0;
+                    int _minute = 0;
+                    int _second = 0;
+
+                    if (controller.hrsController.text.isNotEmpty) {
+                      _hour = int.parse(controller.hrsController.text);
+                    }
+                    if (controller.minController.text.isNotEmpty) {
+                      _minute = int.parse(controller.minController.text);
+                    }
+                    if (controller.secController.text.isNotEmpty) {
+                      _second = int.parse(controller.secController.text);
+                    }
+
+                    if (controller.hrsController.text != "" ||
+                        controller.minController.text != "" ||
+                        controller.secController.text != "") {
+                      controller.timesList.add(TimerModule(
+                        hrs: controller.hrsController.text.isNotEmpty
+                            ? controller.hrsController.text
                             : "00",
-                        min: minController.text.isNotEmpty
-                            ? minController.text
+                        min: controller.minController.text.isNotEmpty
+                            ? controller.minController.text
                             : "00",
-                        sec: secController.text.isNotEmpty
-                            ? secController.text
+                        sec: controller.secController.text.isNotEmpty
+                            ? controller.secController.text
                             : "00",
                       ));
+                      controller.durationList.value.add(Duration(
+                          hours: _hour, minutes: _minute, seconds: _second));
+
+                      controller.countdownTimerList.value
+                          .add(Timer(Duration(seconds: 1), () {}));
                     }
                   });
                   Navigator.pop(context, 'ok');
@@ -244,34 +212,51 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 
-  void startTimer() {
-    countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setCountDown(tick: timer.tick);
+  void startTimer(int index) {
+    if (controller.countdownTimerList.value.isNotEmpty) {
+      controller.countdownTimerList.value[index].cancel();
+    }
+    controller.countdownTimerList.value[index] =
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+      setCountDown(
+          durations: controller.durationList.value[index], index: index);
     });
   }
 
-  void stopTimer() {
-    setState(() => countdownTimer?.cancel());
+  void stopTimer(int index) {
+    setState(() => controller.countdownTimerList.value[index].cancel());
   }
 
-  void setCountDown({required tick}) {
-    print("initial Duarion : ${myDuration!.inSeconds}");
-    setState(() {
-      final sec = myDuration!.inSeconds - tick;
-      print(" sec Duration : ${sec}");
-      if (sec < 0) {
-        countdownTimer!.cancel();
-      } else {
-        myDuration = Duration(seconds: sec.toInt());
-        print(" decreasing duration: ${myDuration!.inSeconds}");
-        hours = hrStrDigits(myDuration!.inHours.remainder(24));
-        minutes = minStrDigits(myDuration!.inMinutes.remainder(60));
-        seconds = secStrDigits(myDuration!.inSeconds.remainder(60));
-      }
+  void setCountDown({required Duration durations, required index}) {
+    final sec = durations!.inSeconds - 1;
+    if (sec < 0) {
+      controller.countdownTimerList.value[index].cancel();
+    } else {
+      durations = Duration(seconds: sec.toInt());
+      controller.durationList.value[index] = durations;
+      print(controller.durationList.value[index]);
+      controller.update();
+    }
+  }
 
-      debugPrint('Timer values ---> ${myDuration!.inSeconds - tick}');
-    });
-
-    print("outer value : ${myDuration!.inSeconds}");
+  RichText _printDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return RichText(
+        text: TextSpan(
+      text: "",
+      style: const TextStyle(fontSize: 40, color: ColorResources.grey1Color),
+      children: <TextSpan>[
+        TextSpan(
+            text: twoDigits(duration.inHours),
+            style: const TextStyle(fontSize: 40)),
+        const TextSpan(text: "H  ", style: TextStyle(fontSize: 20)),
+        TextSpan(text: twoDigitMinutes, style: const TextStyle(fontSize: 40)),
+        const TextSpan(text: "M  ", style: TextStyle(fontSize: 20)),
+        TextSpan(text: twoDigitSeconds, style: const TextStyle(fontSize: 40)),
+        const TextSpan(text: "S  ", style: TextStyle(fontSize: 20)),
+      ],
+    ));
   }
 }
