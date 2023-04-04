@@ -23,6 +23,10 @@ class _TimerScreenState extends State<TimerScreen>
   TextEditingController dateController = TextEditingController();
   Timer? countdownTimer;
   Duration? myDuration;
+  var hours;
+  var minutes;
+  var seconds;
+  var cityName;
 
   String hrStrDigits(int n) => n.toString().padLeft(2, '0');
 
@@ -79,8 +83,7 @@ class _TimerScreenState extends State<TimerScreen>
                                   ? startTimer()
                                   : stopTimer();
                               setState(() {
-                                timesList[index].isPlaying =
-                                    !timesList[index].isPlaying;
+                                timesList[index].isPlaying = !timesList[index].isPlaying;
                               });
                             },
                             isPlay: timesList[index].isPlaying);
@@ -123,9 +126,7 @@ class _TimerScreenState extends State<TimerScreen>
       required int sec,
       required Function() onPress,
       bool isPlay = false}) {
-    var hours;
-    var minutes;
-    var seconds;
+
     if (durations != null) {
       myDuration = durations;
       hours = hrStrDigits(myDuration!.inHours.remainder(24));
@@ -244,23 +245,33 @@ class _TimerScreenState extends State<TimerScreen>
   }
 
   void startTimer() {
-    countdownTimer =
-        Timer.periodic(const Duration(seconds: 1), (_) => setCountDown());
+    countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setCountDown(tick: timer.tick);
+    });
   }
 
   void stopTimer() {
     setState(() => countdownTimer?.cancel());
   }
 
-  void setCountDown() {
-    final reduceBy = 1;
+  void setCountDown({required tick}) {
+    print("initial Duarion : ${myDuration!.inSeconds}");
     setState(() {
-      final sec = myDuration!.inSeconds - reduceBy;
+      final sec = myDuration!.inSeconds - tick;
+      print(" sec Duration : ${sec}");
       if (sec < 0) {
         countdownTimer!.cancel();
       } else {
-        myDuration = Duration(seconds: sec);
+        myDuration = Duration(seconds: sec.toInt());
+        print(" decreasing duration: ${myDuration!.inSeconds}");
+        hours = hrStrDigits(myDuration!.inHours.remainder(24));
+        minutes = minStrDigits(myDuration!.inMinutes.remainder(60));
+        seconds = secStrDigits(myDuration!.inSeconds.remainder(60));
       }
+
+      debugPrint('Timer values ---> ${myDuration!.inSeconds - tick}');
     });
+
+    print("outer value : ${myDuration!.inSeconds}");
   }
 }

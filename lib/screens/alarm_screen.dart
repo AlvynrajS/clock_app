@@ -1,4 +1,3 @@
-
 import 'package:clock_app/module/alram_module.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/widgets/custom_text.dart';
@@ -51,18 +50,11 @@ class AlarmScreenState extends State<AlarmScreen>
               itemCount: weekdays.length,
               itemBuilder: (BuildContext context, int index) {
                 return CheckboxListTile(
-                  title: Text(weekdays[index]),
-                  value: selectedWeekdays[index],
-                  onChanged: (bool? value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedWeekdays[index] = value;
-                      });
-                    } else {
-                      selectedWeekdays[index];
-                    }
-                  },
-                );
+                    title: Text(weekdays[index]),
+                    value: selectedWeekdays[index],
+                    onChanged: (bool? value) {
+                      isChecked(value!, index);
+                    });
               },
             ),
           ),
@@ -96,6 +88,24 @@ class AlarmScreenState extends State<AlarmScreen>
       },
     );
   }
+
+  void isChecked(bool newValue, int index) => setState(() {
+        selectedWeekdays[index] = newValue;
+
+        if (selectedWeekdays[index]) {
+          //something here
+        } else {
+          // change value here
+        }
+
+        // if (value != null) {
+        //   setState(() {
+        //     selectedWeekdays[index] = value;
+        //   });
+        // } else {
+        //   selectedWeekdays[index];
+        // }
+      });
 
   @override
   Widget build(BuildContext context) {

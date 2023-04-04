@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class TimerModule {
-  String hrs;
+  String hrs ;
   String min;
   String sec;
   bool isPlaying = false;

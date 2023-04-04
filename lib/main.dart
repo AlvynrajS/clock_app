@@ -3,13 +3,42 @@ import 'package:clock_app/screens/alarm_screen.dart';
 import 'package:clock_app/screens/clock_screen.dart';
 import 'package:clock_app/screens/stopwatch_screen.dart';
 import 'package:clock_app/screens/timer_screen.dart';
+import 'package:clock_app/screens/timer_screen_duplicate.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/utils/image_resource.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  Workmanager().registerPeriodicTask("2", "SimplePeriodic task",frequency: const Duration(minutes: 1));
   AndroidAlarmManager.initialize();
   runApp(const MyApp());
+}
+
+void callbackDispatcher() {
+  Workmanager().executeTask((taskName, inputData) {
+    FlutterLocalNotificationsPlugin flip = FlutterLocalNotificationsPlugin();
+    var andriod = const AndroidInitializationSettings("@mipmap/ic_launcher");
+    var setting = InitializationSettings(android: andriod);
+    flip.initialize(setting);
+    showNotificationWithDefaultSound(flip);
+    return Future.value(true);
+  });
+}
+
+Future showNotificationWithDefaultSound(flip) async {
+  var androidSpecificChannel = const AndroidNotificationDetails(
+      "Channel Id", "channelName",
+      channelDescription: "Alarm Notification",
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority);
+  var platformChannelSpecific =
+      NotificationDetails(android: androidSpecificChannel);
+  await flip.show(0, "Alarm Notification", "Click me", platformChannelSpecific,
+      payload: 'Default_sound');
 }
 
 class MyApp extends StatelessWidget {
@@ -118,7 +147,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             body: TabBarView(controller: tabBarController, children: const [
               ClockScreen(),
               AlarmScreen(),
-              TimerScreen(),
+              // TimerScreen(),
+              TimerScreenDuplicate(),
               StopWatchScreen()
             ]),
           )),
