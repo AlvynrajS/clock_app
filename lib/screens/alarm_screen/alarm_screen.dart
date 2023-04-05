@@ -1,8 +1,10 @@
 import 'package:clock_app/module/alram_module.dart';
+import 'package:clock_app/screens/alarm_screen/alarm_screen_controller.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class AlarmScreen extends StatefulWidget {
@@ -14,9 +16,9 @@ class AlarmScreen extends StatefulWidget {
 
 class AlarmScreenState extends State<AlarmScreen>
     with AutomaticKeepAliveClientMixin {
-  DateTime dateTime = DateTime.now();
-  Duration duration = const Duration(minutes: 10);
-  List<AlarmModule> aList = [];
+  AlarmScreenController controller = Get.put(AlarmScreenController());
+
+
   List<String> days = [];
   List<String> weekdays = [
     'Monday',
@@ -89,7 +91,8 @@ class AlarmScreenState extends State<AlarmScreen>
     );
   }
 
-  void isChecked(bool newValue, int index) => setState(() {
+  void isChecked(bool newValue, int index) =>
+      setState(() {
         selectedWeekdays[index] = newValue;
 
         if (selectedWeekdays[index]) {
@@ -109,77 +112,65 @@ class AlarmScreenState extends State<AlarmScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      SizedBox(
-        height: MediaQuery.of(context).size.height / 1.3,
-        child: ListView.separated(
-          itemCount: aList.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-                contentPadding: const EdgeInsets.all(20),
-                title: RichText(
-                    text: TextSpan(
-                        text: aList[index].hrs,
-                        style: const TextStyle(
-                            fontSize: 40, color: ColorResources.grey1Color),
-                        children: [
-                      const TextSpan(
-                          text: "  ", style: TextStyle(fontSize: 20)),
-                      TextSpan(
-                          text: aList[index].mins,
-                          style: const TextStyle(fontSize: 20))
-                    ])),
-                subtitle: CustomText(days.join(','),
-                    style: const TextStyle(
-                        fontSize: 15, color: ColorResources.grey3Color)),
-                trailing: Switch(
-                    value: aList[index].isOn,
-                    onChanged: (val) {
-                      setState(() {
-                        aList[index].isOn = val;
-                      });
-                    }));
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return const Divider(
-              height: 10,
-              color: ColorResources.grey1Color,
-            );
-          },
-        ),
-      ),
-      FloatingActionButton(
-        backgroundColor: ColorResources.lav2Color,
-        onPressed: () {
-          selectTime(context);
-        },
-        child: const Icon(Icons.add),
-      )
-    ]);
-  }
-
-  Future<void> selectTime(BuildContext context) async {
-    TimeOfDay? newTime = await showRoundedTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-        leftBtn: "NOW",
-        onLeftBtn: () {
-          Navigator.of(context).pop(TimeOfDay.now());
+    return GetBuilder<AlarmScreenController>(
+      builder: (controller) {
+        return Obx(() {
+          return Column(children: [
+            SizedBox(
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height / 1.3,
+              child: ListView.separated(
+                itemCount: controller.aList.value.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                      contentPadding: const EdgeInsets.all(20),
+                      title: RichText(
+                          text: TextSpan(
+                              text: controller.aList[index].hrs,
+                              style: const TextStyle(
+                                  fontSize: 40,
+                                  color: ColorResources.grey1Color),
+                              children: [
+                                const TextSpan(
+                                    text: "  ", style: TextStyle(fontSize: 20)),
+                                TextSpan(
+                                    text: controller.aList[index].mins,
+                                    style: const TextStyle(fontSize: 20))
+                              ])),
+                      subtitle: CustomText(days.join(','),
+                          style: const TextStyle(
+                              fontSize: 15, color: ColorResources.grey3Color)),
+                      trailing: Switch(
+                          value: controller.aList[index].isOn,
+                          onChanged: (val) {
+                            setState(() {
+                              controller.aList[index].isOn = val;
+                            });
+                          }));
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  return const Divider(
+                    height: 10,
+                    color: ColorResources.grey1Color,
+                  );
+                },
+              ),
+            ),
+            FloatingActionButton(
+              backgroundColor: ColorResources.lav2Color,
+              onPressed: () {
+                controller.selectTime(context);
+              },
+              child: const Icon(Icons.add),
+            )
+          ]);
         });
-    if (newTime != null) {
-      setState(() {
-        dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day,
-            newTime.hour, newTime.minute);
-        aList.addAll([
-          AlarmModule(
-              hrs: DateFormat("k:mm").format(dateTime),
-              mins: DateFormat("a").format(dateTime))
-        ]);
-
-        setAlarm();
-      });
-    }
+      },
+    );
   }
+
 
   @override
   // TODO: implement wantKeepAlive

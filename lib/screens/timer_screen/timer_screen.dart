@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:clock_app/module/timer_module.dart';
-import 'package:clock_app/screens/timer_screen_controller.dart';
+import 'package:clock_app/screens/timer_screen/timer_screen_controller.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/utils/validation.dart';
 import 'package:clock_app/widgets/custom_text.dart';
@@ -19,15 +19,11 @@ class _TimerScreenDuplicate extends State<TimerScreen> {
   TimerScreenController controller = Get.put(TimerScreenController());
 
   String hrStrDigits(int n) => n.toString().padLeft(2, '0');
+
   String minStrDigits(int n) => n.toString().padLeft(2, '0');
+
   String secStrDigits(int n) => n.toString().padLeft(2, '0');
 
-  @override
-  void initState() {
-    super.initState();
-    // timesList;
-    // durationList;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,76 +31,84 @@ class _TimerScreenDuplicate extends State<TimerScreen> {
       builder: (controller) {
         return SafeArea(
             child: Scaffold(
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                "Recent items",
-                style: const TextStyle(
-                    color: ColorResources.grey1Color, fontSize: 20),
-              ),
-              SizedBox(height: 10),
-              Stack(
+              body: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Obx(() {
-                    return SizedBox(
-                      height: MediaQuery.of(context).size.height / 1.5,
-                      child: ListView.separated(
-                        itemCount: controller.timesList.value.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          TimerModule _module =
+                  CustomText(
+                    "Recent items",
+                    style: const TextStyle(
+                        color: ColorResources.grey1Color, fontSize: 20),
+                  ),
+                  SizedBox(height: 10),
+                  Stack(
+                    children: [
+                      Obx(() {
+                        return SizedBox(
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height / 1.5,
+                          child: ListView.separated(
+                            itemCount: controller.timesList.value.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              TimerModule _module =
                               controller.timesList.value[index];
-                          return ListTile(
-                            title: _printDuration(
-                                controller.durationList.value[index]),
-                            subtitle: CustomText(_module.cityName),
-                            trailing: IconButton(
-                                onPressed: () {
-                                  (_module.isPlaying == false)
-                                      ? startTimer(index)
-                                      : stopTimer(index);
-                                  setState(() {
-                                    _module.isPlaying = !_module.isPlaying;
-                                  });
-                                },
-                                icon: Icon(
-                                  (!_module.isPlaying)
-                                      ? Icons.play_arrow_outlined
-                                      : Icons.pause,
-                                  color: ColorResources.lav2Color,
-                                  size: 40,
-                                )),
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) {
-                          return const Divider(
-                            thickness: 1,
-                            color: ColorResources.grey1Color,
-                          );
-                        },
-                      ),
-                    );
-                  }),
-                  Positioned(
-                    bottom: 50,
-                    left: MediaQuery.of(context).size.width / 2.5,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        popup();
-                      },
-                      backgroundColor: ColorResources.lav2Color,
-                      child: const Center(
-                          child: Icon(
-                        Icons.add,
-                        size: 35,
-                      )),
-                    ),
+                              return ListTile(
+                                title:
+                                  _printDuration(
+                                      controller.durationList.value[index]),
+                                subtitle: CustomText(_module.cityName),
+                                trailing: IconButton(
+                                    onPressed: () {
+                                      (_module.isPlaying == false)
+                                          ? controller.startTimer(index)
+                                          : controller.stopTimer(index);
+                                      setState(() {
+                                        _module.isPlaying = !_module.isPlaying;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      (!_module.isPlaying)
+                                          ? Icons.play_arrow_outlined
+                                          : Icons.pause,
+                                      color: ColorResources.lav2Color,
+                                      size: 40,
+                                    )),
+                              );
+                            },
+                            separatorBuilder: (BuildContext context,
+                                int index) {
+                              return const Divider(
+                                thickness: 1,
+                                color: ColorResources.grey1Color,
+                              );
+                            },
+                          ),
+                        );
+                      }),
+                      Positioned(
+                        bottom: 50,
+                        left: MediaQuery
+                            .of(context)
+                            .size
+                            .width / 2.5,
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            popup();
+                          },
+                          backgroundColor: ColorResources.lav2Color,
+                          child: const Center(
+                              child: Icon(
+                                Icons.add,
+                                size: 35,
+                              )),
+                        ),
+                      )
+                    ],
                   )
                 ],
-              )
-            ],
-          ),
-        ));
+              ),
+            ));
       },
     );
   }
@@ -185,8 +189,8 @@ class _TimerScreenDuplicate extends State<TimerScreen> {
         });
   }
 
-  Widget timerTextFormFiled(
-      TextEditingController controller, String value, String vPattern) {
+  Widget timerTextFormFiled(TextEditingController controller, String value,
+      String vPattern) {
     return Row(
       children: [
         SizedBox(
@@ -197,11 +201,11 @@ class _TimerScreenDuplicate extends State<TimerScreen> {
               FilteringTextInputFormatter.allow(RegExp(vPattern))
             ],
             style:
-                const TextStyle(fontSize: 40, color: ColorResources.grey1Color),
+            const TextStyle(fontSize: 40, color: ColorResources.grey1Color),
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: false),
             decoration:
-                const InputDecoration(hintText: '00', border: InputBorder.none),
+            const InputDecoration(hintText: '00', border: InputBorder.none),
           ),
         ),
         CustomText(value,
@@ -212,51 +216,27 @@ class _TimerScreenDuplicate extends State<TimerScreen> {
     );
   }
 
-  void startTimer(int index) {
-    if (controller.countdownTimerList.value.isNotEmpty) {
-      controller.countdownTimerList.value[index].cancel();
-    }
-    controller.countdownTimerList.value[index] =
-        Timer.periodic(const Duration(seconds: 1), (timer) {
-      setCountDown(
-          durations: controller.durationList.value[index], index: index);
-    });
-  }
-
-  void stopTimer(int index) {
-    setState(() => controller.countdownTimerList.value[index].cancel());
-  }
-
-  void setCountDown({required Duration durations, required index}) {
-    final sec = durations!.inSeconds - 1;
-    if (sec < 0) {
-      controller.countdownTimerList.value[index].cancel();
-    } else {
-      durations = Duration(seconds: sec.toInt());
-      controller.durationList.value[index] = durations;
-      print(controller.durationList.value[index]);
-      controller.update();
-    }
-  }
-
   RichText _printDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
     return RichText(
         text: TextSpan(
-      text: "",
-      style: const TextStyle(fontSize: 40, color: ColorResources.grey1Color),
-      children: <TextSpan>[
-        TextSpan(
-            text: twoDigits(duration.inHours),
-            style: const TextStyle(fontSize: 40)),
-        const TextSpan(text: "H  ", style: TextStyle(fontSize: 20)),
-        TextSpan(text: twoDigitMinutes, style: const TextStyle(fontSize: 40)),
-        const TextSpan(text: "M  ", style: TextStyle(fontSize: 20)),
-        TextSpan(text: twoDigitSeconds, style: const TextStyle(fontSize: 40)),
-        const TextSpan(text: "S  ", style: TextStyle(fontSize: 20)),
-      ],
-    ));
+          text: "",
+          style: const TextStyle(
+              fontSize: 40, color: ColorResources.grey1Color),
+          children: <TextSpan>[
+            TextSpan(
+                text: twoDigits(duration.inHours),
+                style: const TextStyle(fontSize: 40)),
+            const TextSpan(text: "H  ", style: TextStyle(fontSize: 20)),
+            TextSpan(
+                text: twoDigitMinutes, style: const TextStyle(fontSize: 40)),
+            const TextSpan(text: "M  ", style: TextStyle(fontSize: 20)),
+            TextSpan(
+                text: twoDigitSeconds, style: const TextStyle(fontSize: 40)),
+            const TextSpan(text: "S  ", style: TextStyle(fontSize: 20)),
+          ],
+        ));
   }
 }

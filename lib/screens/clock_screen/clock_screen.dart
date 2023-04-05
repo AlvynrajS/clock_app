@@ -1,13 +1,11 @@
 import 'dart:convert';
+import 'package:clock_app/screens/clock_screen/clock_screen_controller.dart';
 import 'package:clock_app/utils/color_resources.dart';
 import 'package:clock_app/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ClockScreen extends StatefulWidget {
   const ClockScreen({Key? key}) : super(key: key);
@@ -18,184 +16,127 @@ class ClockScreen extends StatefulWidget {
 
 class _ClockScreenState extends State<ClockScreen>
     with AutomaticKeepAliveClientMixin {
-  String cityName = '';
-  bool isDaytime = false;
-  String time = '';
-  String selectedCityName = "";
-  List cities = [];
-  String diff = '';
-
-  Future<void> getCurrentCity() async {
-    if (await Permission.location.isGranted) {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
-      Placemark placemark = placemarks[0];
-      setState(() {
-        cityName = placemark.locality ?? '';
-      });
-    } else {
-      await Permission.location.request();
-      await getCurrentCity();
-    }
-  }
-
-  Future<void> getTime() async {
-    try {
-      // Make the API call to get the current time for this location
-      Response response = await get(
-          Uri.parse('http://worldtimeapi.org/api/timezone/$selectedCityName'));
-      Map data = jsonDecode(response.body);
-      String datetime = data['datetime'];
-      String offset = data['utc_offset'].substring(1, 3);
-      DateTime now = DateTime.parse(datetime);
-      now = now.add(Duration(hours: int.parse(offset)));
-      isDaytime = now.hour > 6 && now.hour < 20;
-      time = DateFormat("hh:mm").format(now);
-      String time2 = DateFormat("hh:mm a").format(now);
-      String range = DateFormat("a").format(now);
-      String cName = data['timezone'];
-      String cTime = DateFormat("hh:mm a").format(DateTime.now());
-      // Date Difference
-      DateTime dateTime1 = DateFormat('h:mm a').parse(cTime);
-      DateTime dateTime2 = DateFormat('h:mm a').parse(time2);
-      Duration difference = dateTime2.difference(dateTime1);
-      if (difference.isNegative) {
-        diff =
-            '${difference.inHours} hours ${difference.inMinutes.remainder(60)} minutes behind';
-        // print("diff is :$diff");
-      } else {
-        diff;
-      }
-
-      cities.addAll([listTile(cName, diff.replaceAll("-", ""), time, range)]);
-      setState(() {
-        cities;
-      });
-    } catch (e) {
-      print('Error caught: $e');
-      time = 'Could not get time data';
-    }
-  }
+  ClockScreenController controller = Get.put(ClockScreenController());
 
   @override
   void initState() {
     super.initState();
-    getCurrentCity();
+    // getCurrentCity();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: SingleChildScrollView(
-        child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-          SizedBox(height: MediaQuery.of(context).size.height / 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              CustomText(
-                DateFormat("hh:mm").format(DateTime.now()),
-                style: const TextStyle(
-                    color: ColorResources.lav2Color,
-                    fontSize: 40,
-                    fontWeight: FontWeight.w600),
+    return GetBuilder<ClockScreenController>(builder: (controller) {
+      return Obx(() {
+        return SizedBox(
+          height: MediaQuery
+              .of(context)
+              .size
+              .height,
+          child: SingleChildScrollView(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start, children: [
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height / 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CustomText(
+                    DateFormat("hh:mm").format(DateTime.now()),
+                    style: const TextStyle(
+                        color: ColorResources.lav2Color,
+                        fontSize: 40,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 10),
+                  CustomText(
+                    DateFormat("a").format(DateTime.now()),
+                    style: const TextStyle(
+                        color: ColorResources.lav2Color,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              CustomText(
-                DateFormat("a").format(DateTime.now()),
-                style: const TextStyle(
-                    color: ColorResources.lav2Color,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CustomText(
+                    DateFormat("EEE , dd MMM").format(DateTime.now()),
+                    style: const TextStyle(
+                        color: ColorResources.lav2Color,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w400),
+                  ),
+                  const SizedBox(width: 10),
+                  CustomText(controller.cityName.value,
+                      style: const TextStyle(
+                          color: ColorResources.lav2Color,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400))
+                ],
               ),
-            ],
+              const SizedBox(height: 20),
+              const Divider(
+                height: 10,
+                color: ColorResources.grey1Color,
+              ),
+              Stack(children: [
+                SizedBox(
+                  height: MediaQuery
+                      .of(context)
+                      .size
+                      .height,
+                  child: ListView.separated(
+                    physics: ScrollPhysics(),
+                    itemCount: controller.cities.value.length,
+                    itemBuilder: (context, index) {
+                      return controller.cities.value[index];
+                    },
+                    separatorBuilder: (BuildContext context, int index) {
+                      return const Divider(
+                          height: 10, color: ColorResources.grey1Color);
+                    },
+                  ),
+                ),
+                Positioned(
+                  top: MediaQuery
+                      .of(context)
+                      .size
+                      .height / 2.5,
+                  right: MediaQuery
+                      .of(context)
+                      .size
+                      .width / 2.3,
+                  left: MediaQuery
+                      .of(context)
+                      .size
+                      .width / 2.4,
+                  child: FloatingActionButton(
+                    backgroundColor: ColorResources.lav2Color,
+                    onPressed: () async {
+                      controller.selectedCityName.value = await showSearch(
+                          context: context, delegate: SearchBar());
+                      setState(() {
+                        controller.selectedCityName.value;
+                        controller.getTime();
+                      });
+                    },
+                    splashColor: ColorResources.lav2Color,
+                    child: const Icon(Icons.add),
+                  ),
+                ),
+              ]),
+            ]),
           ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              CustomText(
-                DateFormat("EEE , dd MMM").format(DateTime.now()),
-                style: const TextStyle(
-                    color: ColorResources.lav2Color,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400),
-              ),
-              const SizedBox(width: 10),
-              CustomText(cityName,
-                  style: const TextStyle(
-                      color: ColorResources.lav2Color,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400))
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Divider(
-            height: 10,
-            color: ColorResources.grey1Color,
-          ),
-          Stack(children: [
-            SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: ListView.separated(
-                itemCount: cities.length,
-                itemBuilder: (context, index) {
-                  return cities[index];
-                },
-                separatorBuilder: (BuildContext context, int index) {
-                  return const Divider(
-                      height: 10, color: ColorResources.grey1Color);
-                },
-              ),
-            ),
-            // Padding(
-            //   padding: const EdgeInsets.only(bottom: 120),
-            //   child:
-            Positioned(
-              top: MediaQuery.of(context).size.height / 2.5,
-              right: MediaQuery.of(context).size.width / 2.3,
-              left: MediaQuery.of(context).size.width / 2.4,
-              child: FloatingActionButton(
-                backgroundColor: ColorResources.lav2Color,
-                onPressed: () async {
-                  selectedCityName =
-                      await showSearch(context: context, delegate: SearchBar());
-                  setState(() {
-                    selectedCityName;
-                    getTime();
-                  });
-                },
-                splashColor: ColorResources.lav2Color,
-                child: const Icon(Icons.add),
-              ),
-            ),
-            // )
-          ]),
-        ]),
-      ),
-    );
-  }
-
-  Widget listTile(
-      String cityName, String hrsDetail, String time, String timeRange) {
-    return ListTile(
-      title: CustomText(cityName, style: const TextStyle(fontSize: 20)),
-      subtitle: CustomText(hrsDetail, style: const TextStyle(fontSize: 20)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomText(time,
-              style: const TextStyle(
-                  fontSize: 40, color: ColorResources.grey1Color)),
-          const SizedBox(width: 10),
-          CustomText(timeRange, style: const TextStyle(fontSize: 20)),
-        ],
-      ),
-    );
+        );
+      });
+    });
   }
 
   @override
